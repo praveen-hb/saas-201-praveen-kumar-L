@@ -12,7 +12,6 @@ def get_command_line_argument
   dns_raw = File.readlines("zone")
  
 def parse_dns(dns_raw)
-    records=[]
     #Comment lines and empty lines are rejected
     dns_raw.reject! {|record| record[0]=="#" or record.strip.empty?}
     #Each record divided into 3 parts
