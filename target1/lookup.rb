@@ -11,40 +11,54 @@ def get_command_line_argument
 
   dns_raw = File.readlines("zone")
  
-def parse_dns(dn)
-    ar=[]
-    dn.each do |line|
-       if line[0]=="A" || line[0]=="C"
-            temp=line.split(",")
-            temp=temp.map {|ele|  ele.strip}
-            ar.push(temp) 
-       end
+def parse_dns(dns_raw)
+    records=[]
+    #Comment lines and empty lines are rejected
+    dns_raw.reject! {|record| record[0]=="#" or record.strip.empty?}
+    #Each record divided into 3 parts
+    dns_raw.map! {|record| record.split(",")}
+    #extra white spaces are removed
+    dns_raw.each do |record|
+        record.map! {|element| element.strip}
     end
-    ar
+    '''
+        In each dns_raw record
+            record[0]=type of record
+            record[1]=old domain name
+            record[2]=new domain name or IP address
+    '''
+    dns_raw
 end
 
-def resolve(dns,look,dom)
-    ans=dns.filter {|ele| ele[1]==dom && ele[0]=="A"}
-    if ans.length==0
-        ans=dns.filter {|ele| ele[1]==dom}
-        if ans.length==0
-            puts "Error: record not found for #{dom}"
+def resolve(dns_records,lookup_chain,domain)
+    #checking domain is present in A records or not
+    answer=dns_records.find {|record| record[1]==domain && record[0]=="A"}
+    #if domain not present in A records
+    if answer==nil
+        #checking domain is present in CNAME records
+        answer=dns_records.find {|record| record[1]==domain && record[0]=="CNAME"}
+        #if domain not present in CNAME records
+        if answer==nil
+            puts "Error: record not found for #{domain}"
             exit
         else
-            dom=ans[0][2]
+            domain=answer[2]
             #cycle checking
-            cyc=look.find {|e| e==dom}
-            if cyc!=nil
-                puts "No record found ..Cylce in CNames"
+            cycle_domain=lookup_chain.find {|domain_name| domain_name==domain}
+            #if current domain already present in lookup chain
+            if cycle_domain!=nil
+                puts "Zone data is invalid (it may contain cycles)."
                 exit
             end
-            look.push(ans[0][2])
-            look=resolve(dns,look,dom)
+            #push the new NAME of domain and search
+            lookup_chain.push(answer[2])
+            lookup_chain=resolve(dns_records,lookup_chain,domain)
         end
     else
-        look.push(ans[0][2])
+        #push IP address 
+        lookup_chain.push(answer[2])
     end
-    look
+    lookup_chain
 end
 
   dns_records = parse_dns(dns_raw)
