@@ -13,20 +13,20 @@ def get_command_line_argument
  
 def parse_dns(dns_raw)
     #Comment lines and empty lines are rejected
-    dns_raw.reject! {|record| record[0]=="#" or record.strip.empty?}
+    records=dns_raw.filter {|record| record[0]!="#" and !record.strip.empty?}
     #Each record divided into 3 parts
-    dns_raw.map! {|record| record.split(",")}
+    records.map! {|record| record.split(",")}
     #extra white spaces are removed
-    dns_raw.each do |record|
+    records.each do |record|
         record.map! {|element| element.strip}
     end
     '''
-        In each dns_raw record
+        In each record of records
             record[0]=type of record
             record[1]=old domain name
             record[2]=new domain name or IP address
     '''
-    dns_raw
+    records
 end
 
 def resolve(dns_records,lookup_chain,domain)
