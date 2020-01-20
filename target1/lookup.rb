@@ -15,17 +15,16 @@ def parse_dns(dns_raw)
     #Comment lines and empty lines are rejected
     records=dns_raw.filter {|record| record[0]!="#" and !record.strip.empty?}
     #Each record divided into 3 parts
-    records.map! {|record| record.split(",")}
+    records=records.map {|record| record.split(",")}
     #extra white spaces are removed
     records.each do |record|
-        record.map! {|element| element.strip}
+        record=record.map {|element| element.strip}
     end
-    '''
-        In each record of records
-            record[0]=type of record
-            record[1]=old domain name
-            record[2]=new domain name or IP address
-    '''
+       # In each record of records
+          #   record[0]=type of record
+          #   record[1]=old domain name
+          #   record[2]=new domain name or IP address
+
     records
 end
 
