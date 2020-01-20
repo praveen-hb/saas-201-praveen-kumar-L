@@ -11,48 +11,38 @@ domain = get_command_line_argument
 dns_raw = File.readlines("zone")
 
 def parse_dns(dns_raw)
-  dns_records = dns_raw.filter { |record| record[0] != "#" and !record.strip.empty? }
-  dns_records = dns_records.map { |record| record.split(",") }
-  line = 0
-  dns_records.map do |record|
-    dns_records[line] = record.map { |element| element.strip }
-    line += 1
+  dns_records = {}
+  dns_raw.each do |line|
+    unless line[0] == "#" or line.strip.empty?
+      line = line.split(",")
+      if line[0].strip == "A"
+        dns_records[line[1].strip] = { :type => "A", :IP_address => line[2].strip }
+      else
+        dns_records[line[1].strip] = { :type => "CNAME", :alias => line[2].strip }
+      end
+    end
   end
-  # In each record of records
-  #    record[0]=type of record
-  #    record[1]=old domain name
-  #    record[2]=new domain name or IP address
   dns_records
 end
 
 def resolve(dns_records, lookup_chain, domain)
-  #checking domain is present in A records or not
-  lookup_result = dns_records.find { |record| record[1] == domain && record[0] == "A" }
-  #if domain not present in A records
-  if lookup_result == nil
-    #checking domain is present in CNAME records
-    lookup_result = dns_records.find { |record| record[1] == domain && record[0] == "CNAME" }
-    #if domain not present in CNAME records
-    if lookup_result == nil
-      puts "Error: record not found for #{domain}"
-      exit
-    else
-      domain = lookup_result[2]
-      #cycle checking
-      cycle_domain = lookup_chain.find { |domain_name| domain_name == domain }
-      #if current domain already present in lookup chain
-      if cycle_domain != nil
-        puts "Zone data is invalid (it may contain cycles)."
-        exit
-      end
-      #push the new NAME of domain and search
-      lookup_chain.push(lookup_result[2])
-      lookup_chain = resolve(dns_records, lookup_chain, domain)
-    end
+  dns_record = dns_records[domain]
+  if dns_record == nil
+    puts "Error: record not found for #{domain}"
+    exit
+  elsif dns_record[:type] == "A"
+    lookup_chain.push(dns_record[:IP_address])
   else
-    #push IP address
-    lookup_chain.push(lookup_result[2])
+    #cycle check
+    cycle_domain = lookup_chain.find { |element| element == dns_record[:alias] }
+    if cycle_domain != nil
+      puts "invalid zone file (it may contain cycles)"
+      exit
+    end
+    lookup_chain.push(dns_record[:alias])
+    lookup_chain = resolve(dns_records, lookup_chain, dns_record[:alias])
   end
+
   lookup_chain
 end
 
