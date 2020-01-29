@@ -8,18 +8,15 @@ class Todo
   end
 
   def overdue?
-    return true if Date.today > @due_date
-    false
+    Date.today > @due_date
   end
 
   def due_today?
-    return true if Date.today == @due_date
-    false
+    Date.today == @due_date
   end
 
   def due_later?
-    return true if Date.today < @due_date
-    false
+    Date.today < @due_date
   end
 
   def to_displayable_string
@@ -60,9 +57,7 @@ class TodosList
   end
 
   def to_displayable_list
-    todo_list = []
-    todo_list = @todos.map { |todo| todo.to_displayable_string }
-    todo_list.join("\n")
+    @todos.map { |todo| todo.to_displayable_string }.join("\n")
   end
 end
 
