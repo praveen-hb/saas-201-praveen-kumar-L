@@ -5,13 +5,9 @@ class Todo < ActiveRecord::Base
     create(todo_text: todo[:todo_text], due_date: Date.today + todo[:due_in_days], completed: false)
   end
 
-  def due_today?
-    Date.today == due_date
-  end
-
   def to_displayable_string
     display_status = completed ? "[X]" : "[ ]"
-    display_date = due_today? ? nil : due_date
+    display_date = Date.today == due_date ? nil : due_date
     "#{id}. #{display_status} #{todo_text} #{display_date}"
   end
 
