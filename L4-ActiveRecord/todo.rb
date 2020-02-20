@@ -19,15 +19,15 @@ class Todo < ActiveRecord::Base
     puts "My Todo-list\n\n"
 
     puts "Overdue\n"
-    puts where("due_date < ?", Date.today).map { |todo| todo.to_displayable_string }
+    puts where("due_date < ?", Date.today).order(:id).map { |todo| todo.to_displayable_string }
     puts "\n\n"
 
     puts "Due Today\n"
-    puts where(due_date: Date.today).map { |todo| todo.to_displayable_string }
+    puts where(due_date: Date.today).order(:id).map { |todo| todo.to_displayable_string }
     puts "\n\n"
 
     puts "Due Later\n"
-    puts where("due_date > ?", Date.today).map { |todo| todo.to_displayable_string }
+    puts where("due_date > ?", Date.today).order(:id).map { |todo| todo.to_displayable_string }
     puts "\n\n"
   end
 
